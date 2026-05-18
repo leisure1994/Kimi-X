@@ -4,69 +4,119 @@
 
 **为 Kimi K2.6 打造的终端 AI Agent**
 
-[安装指南](#安装) · [文档](docs/) · [CHANGELOG](CHANGELOG.md)
+[🚀 立即安装](#安装) · [📖 功能说明](#功能) · [💬 问题反馈](https://github.com/leisure1994/Kimi-X/issues)
 
 </div>
 
-## 特性
+---
 
-- **四层内存** — 工作记忆 + 语义记忆 + 情景记忆 + 层级记忆 + Hindsight 复盘
-- **Agent 经济** — 闲时兼职、赏金任务、客观评分、平台仲裁
-- **ClawTip 支付** — 京东背书 Agent 支付系统，SM4 国密加密
+## 📦 安装（推荐：下载 ZIP）
+
+不需要懂代码，不需要配置网络，三步完成：
+
+### 第一步：下载代码
+
+[👉 点这里下载 kimix-agent-v0.89.zip](https://github.com/leisure1994/Kimi-X/archive/refs/heads/master.zip)
+
+下载后**右键解压**，你会得到一个 `Kimi-X-master` 文件夹。
+
+> 如果 GitHub 下载慢或打不开，从飞书聊天记录里下载我发的 ZIP 文件也一样。
+
+### 第二步：安装运行环境
+
+需要两个免费软件：
+
+| 软件 | 作用 | 下载地址 |
+|:---|:---|:---|
+| **Python** | 运行 Agent 的程序 | [python.org/downloads](https://www.python.org/downloads/) |
+| **Git** | 可选，更新代码用 | [git-scm.com](https://git-scm.com/download/win) |
+
+**Python 安装时注意：**
+1. 下载 Python 3.12（Windows Installer 64-bit）
+2. 安装时**勾选 "Add Python to PATH"**（重要！）
+3. 一直点"下一步"直到完成
+
+### 第三步：安装 Kimi-Agent
+
+1. 按键盘 `Win + R`，输入 `cmd`，回车 → 打开黑色窗口
+2. 输入：`cd Desktop\Kimi-X-master`（进入解压后的文件夹）
+3. 输入：`pip install -e ".[dev]"`（自动安装所有依赖，等几分钟）
+
+装完会显示 `Successfully installed ...`。
+
+### 第四步：配置 Kimi API Key
+
+1. 打开 https://platform.moonshot.cn/
+2. 登录 → 右上角"API Key 管理" → 创建新 Key
+3. 复制你的 Key（格式类似 `sk-xxxxx`）
+4. 在黑色窗口输入：
+   ```
+   mkdir %USERPROFILE%\.kimix
+   echo {"api_key": "sk-你的密钥"} > %USERPROFILE%\.kimix\config.json
+   ```
+   （把 `sk-你的密钥` 换成你复制的那串字符）
+
+### 第五步：启动！
+
+```
+python -m kimix
+```
+
+看到 Kimi-Agent 界面出现就是成功了。
+
+---
+
+## 🛠️ 功能
+
+- **四层内存** — 工作记忆 + 语义记忆 + 情景记忆 + 层级记忆，越用越懂你
+- **Agent 经济** — 闲时兼职、赏金任务、客观评分
+- **ClawTip 支付** — 京东背书，SM4 国密加密
 - **多模式运行** — Agent / Plan / Explore / Auto / YOLO
-- **安全沙盒** — 代码三层检测（dangerous / suspicious / network）
-- **完整测试** — 27 个测试文件覆盖 smoke/benchmark/stress/chaos/unit/integration
+- **安全沙盒** — 代码三层检测
+- **IM 机器人** — 飞书/企业微信/Slack/Discord/Telegram/钉钉自动回复
+- **完整测试** — 27 个测试文件覆盖各种场景
 
-## 快速开始
+---
 
-```bash
-# 克隆仓库
-git clone https://github.com/yourname/kimix.git
-cd kimix
-
-# 安装
-pip install -e ".[all]"
-
-# 配置 API Key
-export MOONSHOT_API_KEY="sk-xxxxxx"
-
-# 启动
-python3 -m kimix
-```
-
-详见 [README_INSTALL.md](README_INSTALL.md)。
-
-## 版本
-
-当前: **0.88** — IM 机器人系统重写（Stream 长连接/统一消息路由/@识别）
-
-历史: [CHANGELOG.md](CHANGELOG.md)
-
-## 项目结构
+## 📂 项目结构
 
 ```
-kimix/
+Kimi-X/
 ├── kimix/          # 核心源码
-│   ├── core/       # 引擎 + 经济系统 + 进度鞭子
-│   ├── llm/        # LLM 客户端 + 成本追踪
-│   ├── memory/     # 四层内存 + Hindsight
-│   ├── tools/      # 20+ 工具（shell/web/git/文件...）
+│   ├── core/       # 引擎 + 经济系统
+│   ├── llm/        # Kimi 客户端
+│   ├── memory/     # 四层内存
+│   ├── tools/      # 20+ 工具
 │   ├── modes/      # 5 种运行模式
-│   ├── ui/         # TUI (Rich) + CLI (Typer)
-│   └── i18n.py     # 国际化框架
-├── tests/          # 27 个测试文件
-├── config/         # dev / test / prod 环境
-├── docs/           # API 文档 + 部署指南 + 架构设计
-├── scripts/        # 安全审计 + 性能基准 + 安装验证
-└── Dockerfile      # Docker 一键运行
+│   ├── ui/         # 界面
+│   └── bots/       # IM 机器人（飞书/钉钉/Discord...）
+├── tests/          # 测试文件
+├── config/         # 配置文件
+├── docs/           # 技术文档
+├── scripts/        # 安装验证脚本
+└── README.md       # 你正在看的文件
 ```
 
-## 安全
+---
 
-- 收款信息零硬编码，全部从环境变量/配置文件加载
-- 沙盒三层策略检测危险代码
-- 五维代码质量评估系统
+## 🆘 常见问题
 
-## 许可证
+**Q：pip install 时报错 "No module named pip"？**
+A：Python 安装时没勾选 "Add Python to PATH"，重装 Python 并勾选。
+
+**Q：启动后提示 API Key 未配置？**
+A：检查 `%USERPROFILE%\.kimix\config.json` 是否存在，里面要有 `"api_key": "sk-..."`。
+
+**Q：Windows CMD 里字显示不全/界面乱？**
+A：用 Windows Terminal 代替 CMD（微软商店下载），字体设为 Consolas。
+
+**Q：GitHub 下载不了 ZIP？**
+A：从飞书聊天记录里下载我发的 `kimix-agent-v0.89.zip`，内容完全一样。
+
+---
+
+## 📜 许可证
 
 MIT License — 详见 [LICENSE](LICENSE)
+
+**当前版本：0.89** · [更新日志](CHANGELOG.md)
