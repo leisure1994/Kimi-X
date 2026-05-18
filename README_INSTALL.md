@@ -183,7 +183,7 @@ cd Kimi-X-master
 
 #### 方式 B：从飞书/微信接收的 ZIP 文件
 1. 下载飞书/微信发给你的 `kimix-agent-v{VERSION}.zip`
-2. 解压到任意目录（如 `C:\Users\你的用户名\Documents\kimix` 或 `~/projects`）
+2. 解压到任意目录（如 `D:\KIMI X` 或 `~/Kimi-X`）
 3. 打开终端，cd 到解压后的 `kimix-agent-v{VERSION}` 目录
 
 ---
@@ -436,7 +436,7 @@ kimix bots discord
 ```cmd
 :: 1. 打开 CMD 窗口
 :: 2. 进入项目目录（把路径换成你自己的）
-cd C:\Users\%USERNAME%\Documents\kimix\kimix-agent-v{VERSION}
+cd D:\KIMI X\Kimi-X-master
 
 :: 3. 激活虚拟环境
 venv\Scripts\activate.bat
@@ -449,7 +449,7 @@ kimix
 ```powershell
 # 1. 打开 PowerShell 窗口
 # 2. 进入项目目录（把路径换成你自己的）
-cd C:\Users\$env:USERNAME\Documents\kimix\kimix-agent-v{VERSION}
+cd D:\KIMI X\Kimi-X-master
 
 # 3. 激活虚拟环境
 venv\Scripts\activate
@@ -462,7 +462,7 @@ kimix
 ```bash
 # 1. 打开终端
 # 2. 进入项目目录
-cd ~/projects/kimix-agent-v{VERSION}
+cd ~/Kimi-X-master
 # 3. 激活虚拟环境
 source venv/bin/activate
 # 4. 启动
@@ -477,7 +477,7 @@ kimix
 3. 右键编辑，粘贴以下内容（把路径换成你自己的）：
 ```batch
 @echo off
-cd /d C:\Users\%USERNAME%\Documents\kimix\kimix-agent-v{VERSION}
+cd /d D:\KIMI X\Kimi-X-master
 call venv\Scripts\activate.bat
 kimix
 pause
@@ -487,14 +487,14 @@ pause
 **Windows (PowerShell) — 创建 `start-kimix.ps1`：**
 ```powershell
 # 保存为 start-kimix.ps1，双击或用右键"使用 PowerShell 运行"
-cd C:\Users\$env:USERNAME\Documents\kimix\kimix-agent-v{VERSION}
+cd D:\KIMI X\Kimi-X-master
 venv\Scripts\activate
 kimix
 ```
 
 **Mac — 创建 `start-kimix.command`：**
 ```bash
-cd ~/projects/kimix-agent-v{VERSION}
+cd ~/Kimi-X-master
 source venv/bin/activate
 kimix
 ```
@@ -507,7 +507,7 @@ chmod +x start-kimix.command
 **Linux — 创建别名：**
 在 `~/.bashrc` 或 `~/.zshrc` 中添加：
 ```bash
-alias kimix-start='cd ~/projects/kimix-agent-v{VERSION} && source venv/bin/activate && kimix'
+alias kimix-start='cd ~/Kimi-X-master && source venv/bin/activate && kimix'
 ```
 然后 `source ~/.bashrc`，以后输入 `kimix-start` 即可启动！
 
