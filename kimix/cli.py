@@ -266,6 +266,13 @@ def main_callback(
         help="显示调试日志（DEBUG 级别）",
         is_flag=True,
     ),
+    no_tui: bool = typer.Option(
+        False,
+        "--batch",
+        "-b",
+        help="禁用 TUI，使用纯文本输出（适合服务器/CI/管道环境）",
+        is_flag=True,
+    ),
 ) -> None:
     """Kimi-Agent (kimix) - 基于 Kimi k2.6 的智能终端 AI Agent
 
@@ -307,23 +314,32 @@ def main_callback(
 
     if query:
         # 一次性问答模式
-        _run_once(query, agent_mode)
+        _run_once(query, agent_mode, no_tui=no_tui)
     else:
-        # 启动 TUI 模式
-        _run_tui(agent_mode)
+        # 启动 TUI 或 CLI 模式
+        if no_tui:
+            _run_cli_once(agent_mode)
+        else:
+            _run_tui(agent_mode)
 
 
-def _run_once(query: str, mode: AgentMode) -> None:
+def _run_once(query: str, mode: AgentMode, no_tui: bool = False) -> None:
     """运行一次性问答
 
     Args:
         query: 用户问题
         mode: 工作模式
+        no_tui: 是否禁用 TUI（纯文本输出）
     """
     engine = _init_engine(mode)
 
     if engine is not None:
         asyncio.run(engine.initialize(project_path=str(Path(".").resolve())))
+
+    if no_tui:
+        # 纯文本模式：直接打印结果
+        _run_plain_text(engine, query, mode)
+        return
 
     from kimix.ui.cli import CLIInterface
 
@@ -349,6 +365,74 @@ def _run_once(query: str, mode: AgentMode) -> None:
     except Exception as exc:
         console.print(f"[red]执行错误: {exc}[/red]")
         raise typer.Exit(1)
+
+
+def _run_plain_text(engine, query: str, mode: AgentMode) -> None:
+    """纯文本输出模式（无 TUI）
+
+    适合服务器、CI、管道环境使用。
+    """
+    import sys
+
+    if engine is None:
+        console.print("[red]错误: API Key 未配置[/red]")
+        console.print("[yellow]请运行: kimix auth[/yellow]")
+        raise typer.Exit(1)
+
+    async def _run():
+        full_response = []
+        thinking_parts = []
+        async for event in engine.run(query):
+            event_type = event.get("type", "unknown")
+            event_data = event.get("data", "")
+            if event_type == "thinking":
+                thinking_parts.append(str(event_data))
+            elif event_type == "content":
+                # 提取文本
+                text = event_data.get("text", "") if isinstance(event_data, dict) else str(event_data)
+                full_response.append(text)
+                sys.stdout.write(text)
+                sys.stdout.flush()
+            elif event_type == "done":
+                sys.stdout.write("\n")
+                sys.stdout.flush()
+
+        return "".join(full_response)
+
+    asyncio.run(_run())
+
+
+def _run_cli_once(mode: AgentMode) -> None:
+    """启动纯文本交互模式（无 TUI）
+
+    适合服务器/终端不支持 TUI 的环境。
+    """
+    engine = _init_engine(mode)
+
+    if engine is None:
+        console.print("[red]错误: API Key 未配置[/red]")
+        console.print("[yellow]请运行: kimix auth[/yellow]")
+        raise typer.Exit(1)
+
+    asyncio.run(engine.initialize(project_path=str(Path(".").resolve())))
+    console.print("[green]✅ Kimi-Agent v0.91 已启动（纯文本模式）[/green]")
+    console.print("[dim]输入 'exit' 或按 Ctrl+C 退出[/dim]\n")
+
+    while True:
+        try:
+            query = input("> ")
+            if query.lower() in ("exit", "quit", "bye"):
+                console.print("[yellow]再见！[/yellow]")
+                break
+            if not query.strip():
+                continue
+            _run_plain_text(engine, query, mode)
+            console.print()
+        except KeyboardInterrupt:
+            console.print("\n[yellow]已退出[/yellow]")
+            break
+        except EOFError:
+            break
 
 
 def _run_tui(mode: AgentMode) -> None:

@@ -7,7 +7,8 @@
 
 from __future__ import annotations
 
-from typing import TypedDict, Any, Literal
+from dataclasses import dataclass, field
+from typing import Any, Literal
 from datetime import datetime, timezone
 
 
@@ -23,29 +24,64 @@ EventType = Literal[
     "done",           # 完成事件
     "mode_switch",    # 模式切换事件
     "cost_update",    # 成本更新事件
+    "warning",        # 警告事件
+    "notice",         # 通知事件
+    "preflight_alert", # 预判警报
 ]
 
 
-class EngineEvent(TypedDict):
+@dataclass
+class EngineEvent:
     """引擎事件结构
-    
+
     所有事件均遵循此格式，便于 SSE 流式传输和统一处理。
-    
+    支持属性访问和字典访问两种方式。
+
     Attributes:
         type: 事件类型，见 EventType
         data: 事件载荷，类型根据 event.type 变化
         timestamp: 事件产生时间（ISO 格式字符串）
-    
-    Examples:
-        >>> event: EngineEvent = {
-        ...     "type": "content",
-        ...     "data": {"text": "你好！"},
-        ...     "timestamp": "2024-01-01T00:00:00",
-        ... }
     """
-    type: EventType
-    data: dict[str, Any]
-    timestamp: str
+    type: str
+    data: dict[str, Any] = field(default_factory=dict)
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+    def __getitem__(self, key: str) -> Any:
+        """支持字典式访问（兼容旧代码）"""
+        if key == "type":
+            return self.type
+        elif key == "data":
+            return self.data
+        elif key == "timestamp":
+            return self.timestamp
+        raise KeyError(key)
+
+    def get(self, key: str, default: Any = None) -> Any:
+        """支持 dict.get() 式访问"""
+        try:
+            return self[key]
+        except KeyError:
+            return default
+
+    def __contains__(self, key: str) -> bool:
+        return key in ("type", "data", "timestamp")
+
+    def __iter__(self):
+        yield "type", self.type
+        yield "data", self.data
+        yield "timestamp", self.timestamp
+
+    def keys(self):
+        return ["type", "data", "timestamp"]
+
+    def values(self):
+        return [self.type, self.data, self.timestamp]
+
+    def items(self):
+        return [("type", self.type), ("data", self.data), ("timestamp", self.timestamp)]
+
+    def __repr__(self) -> str:
+        return f"EngineEvent(type={self.type!r}, data={self.data!r})"
 
 
 def create_event(
@@ -53,42 +89,19 @@ def create_event(
     data: dict[str, Any] | None = None,
 ) -> EngineEvent:
     """创建标准化引擎事件
-    
+
     工厂函数，用于统一创建事件，自动填充时间戳。
-    
+
     Args:
         event_type: 事件类型
         data: 事件数据字典，不同事件类型对应不同结构
-    
+
     Returns:
-        完整的 EngineEvent 字典
-    
-    Examples:
-        >>> event = create_event("content", {"text": "Hello"})
-        >>> event["type"]
-        'content'
-        
-        >>> error_event = create_event("error", {
-        ...     "message": "文件未找到",
-        ...     "code": "FILE_NOT_FOUND",
-        ... })
-    
-    各事件类型的 data 结构规范:
-        - thinking: {"text": str} - 思考文本片段
-        - content: {"text": str} - 响应文本片段
-        - tool_call: {"tool_calls": list[dict]} - 工具调用列表
-        - tool_result: {"tool_call_id": str, "name": str, "result": Any, "error": str | None}
-        - tool_start: {"tool_call_id": str, "name": str, "params": dict}
-        - tool_end: {"tool_call_id": str, "name": str, "duration_ms": int}
-        - error: {"message": str, "code": str, "recoverable": bool}
-        - done: {"turn_id": str, "usage": dict | None}
-        - mode_switch: {"from": str, "to": str, "reason": str}
-        - cost_update: {"input_tokens": int, "output_tokens": int, "cost_usd": float}
+        EngineEvent 对象（支持 .type / .data / .timestamp 属性访问和 dict 式访问）
     """
     return EngineEvent(
         type=event_type,
         data=data or {},
-        timestamp=datetime.now(timezone.utc).isoformat(),
     )
 
 

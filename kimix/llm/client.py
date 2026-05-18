@@ -257,7 +257,7 @@ class KimiClient:
         content、tool_call、usage、done 等事件类型。
 
         Args:
-            messages: 消息列表
+            messages: 消息列表，也可以直接传字符串（自动转为单条 user 消息）
             tools: 工具定义列表（OpenAI 函数调用格式）
             stream: 是否使用流式响应
             temperature: 采样温度 (0-2)
@@ -267,6 +267,10 @@ class KimiClient:
         Yields:
             ChatEvent: 流式聊天事件
         """
+        # 支持字符串简写：自动转为单条 user 消息
+        if isinstance(messages, str):
+            messages = [{"role": "user", "content": messages}]
+
         config = ChatCompletionConfig(
             model=self._model,
             temperature=temperature,
