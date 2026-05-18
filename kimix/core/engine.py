@@ -39,6 +39,37 @@ from kimix.core.session import Session, SessionManager
 from kimix.core.observability import Observability
 
 
+# ---- ToolCall 兼容性辅助函数 ----
+def _tc_to_dict(tc: Any) -> dict[str, Any]:
+    """将 ToolCall（dict 或 pydantic Model）统一转为 dict"""
+    if isinstance(tc, dict):
+        return tc
+    if hasattr(tc, 'to_dict'):
+        return tc.to_dict()
+    if hasattr(tc, 'id') and hasattr(tc, 'function'):
+        return {
+            "id": tc.id,
+            "type": getattr(tc, 'type', 'function'),
+            "function": {
+                "name": tc.function.name,
+                "arguments": tc.function.arguments,
+            }
+        }
+    return {}
+
+
+def _tc_name(tc: Any) -> str:
+    """获取 ToolCall 的工具名称"""
+    d = _tc_to_dict(tc)
+    return d.get("function", {}).get("name", "")
+
+
+def _tc_params(tc: Any) -> str:
+    """获取 ToolCall 的参数 JSON 字符串"""
+    d = _tc_to_dict(tc)
+    return d.get("function", {}).get("arguments", "")
+
+
 class AgentMode(Enum):
     """Agent 工作模式枚举
     
@@ -459,7 +490,15 @@ class AgentEngine:
 
                         elif event_type == "tool_call":
                             # 工具调用（增量或完整）
-                            tc = event_data.get("tool_call", {})
+                            # event_data 可能是 ToolCall Model（来自 streaming）或 dict
+                            if hasattr(event_data, 'to_dict'):
+                                tc = event_data.to_dict()
+                            elif hasattr(event_data, 'get'):
+                                tc = event_data.get("tool_call", {})
+                            elif isinstance(event_data, dict):
+                                tc = event_data
+                            else:
+                                tc = {}
                             if tc:
                                 current_tool_calls.append(tc)
 
@@ -599,8 +638,7 @@ class AgentEngine:
                         "turn_id": turn_id,
                         "mode": self._mode.value,
                         "tool_calls": [
-                            {"name": tc.get("function", {}).get("name", ""),
-                             "params": tc.get("function", {}).get("arguments", "")}
+                            {"name": _tc_name(tc), "params": _tc_params(tc)}
                             for tc in accumulated_tool_calls
                         ],
                     })
@@ -753,9 +791,10 @@ class AgentEngine:
         results: list[dict[str, Any]] = []
 
         # 创建并发执行任务
-        async def execute_single(tool_call: dict[str, Any]) -> dict[str, Any]:
-            tc_id = tool_call.get("id", "")
-            function_data = tool_call.get("function", {})
+        async def execute_single(tool_call: Any) -> dict[str, Any]:
+            tc_dict = _tc_to_dict(tool_call)
+            tc_id = tc_dict.get("id", "")
+            function_data = tc_dict.get("function", {})
             tool_name = function_data.get("name", "")
             arguments_str = function_data.get("arguments", "{}")
 
