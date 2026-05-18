@@ -38,7 +38,7 @@ python3 -m kimix
 
 ## 版本
 
-当前: **0.86** — 新增 IM 机器人绑定（飞书/企业微信/Slack/Discord/Telegram/钉钉）
+当前: **0.88** — IM 机器人系统重写（Stream 长连接/统一消息路由/@识别）
 
 历史: [CHANGELOG.md](CHANGELOG.md)
 
