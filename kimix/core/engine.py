@@ -61,13 +61,15 @@ def _tc_to_dict(tc: Any) -> dict[str, Any]:
 def _tc_name(tc: Any) -> str:
     """获取 ToolCall 的工具名称"""
     d = _tc_to_dict(tc)
-    return d.get("function", {}).get("name", "")
+    func = d.get("function") or {}
+    return func.get("name", "") or ""
 
 
 def _tc_params(tc: Any) -> str:
     """获取 ToolCall 的参数 JSON 字符串"""
     d = _tc_to_dict(tc)
-    return d.get("function", {}).get("arguments", "")
+    func = d.get("function") or {}
+    return func.get("arguments", "") or "{}"
 
 
 class AgentMode(Enum):
@@ -504,8 +506,12 @@ class AgentEngine:
 
                         elif event_type == "usage":
                             # Token 使用统计
-                            input_tokens = event_data.get("input_tokens", 0)
-                            output_tokens = event_data.get("output_tokens", 0)
+                            if isinstance(event_data, dict):
+                                input_tokens = event_data.get("input_tokens", 0) or 0
+                                output_tokens = event_data.get("output_tokens", 0) or 0
+                            else:
+                                input_tokens = getattr(event_data, "prompt_tokens", 0) or 0
+                                output_tokens = getattr(event_data, "completion_tokens", 0) or 0
                             self._total_input_tokens += input_tokens
                             self._total_output_tokens += output_tokens
 
@@ -595,10 +601,16 @@ class AgentEngine:
                     results = await self.execute_tools(current_tool_calls)
 
                     for result in results:
-                        tc_id = result.get("tool_call_id", "")
-                        tc_name = result.get("name", "")
-                        tc_result = result.get("result")
-                        tc_error = result.get("error")
+                        if isinstance(result, dict):
+                            tc_id = result.get("tool_call_id", "")
+                            tc_name = result.get("name", "")
+                            tc_result = result.get("result")
+                            tc_error = result.get("error")
+                        else:
+                            tc_id = getattr(result, "tool_call_id", "")
+                            tc_name = getattr(result, "name", "")
+                            tc_result = getattr(result, "result", None)
+                            tc_error = getattr(result, "error", None)
 
                         # 发送结果事件
                         yield create_tool_result_event(
@@ -682,7 +694,8 @@ class AgentEngine:
                     from kimix.learning.models import TaskOutcome
                     task_type = analysis.get("task_type", "general")
                     tools_names = [
-                        tc.get("function", {}).get("name", "")
+                        (tc.get("function") or {}).get("name", "") if isinstance(tc, dict)
+                        else getattr(getattr(tc, "function", None), "name", "")
                         for tc in accumulated_tool_calls
                     ]
                     outcome = TaskOutcome.SUCCESS if assistant_response else TaskOutcome.PARTIAL
@@ -754,11 +767,18 @@ class AgentEngine:
             if event_type == "content":
                 response_parts.append(event_data if isinstance(event_data, str) else event_data.get("text", ""))
             elif event_type == "tool_result":
-                tool_calls_log.append({
-                    "name": event_data.get("name", ""),
-                    "result": event_data.get("result"),
-                    "error": event_data.get("error"),
-                })
+                if isinstance(event_data, dict):
+                    tool_calls_log.append({
+                        "name": event_data.get("name", ""),
+                        "result": event_data.get("result"),
+                        "error": event_data.get("error"),
+                    })
+                else:
+                    tool_calls_log.append({
+                        "name": getattr(event_data, "name", "") or "",
+                        "result": getattr(event_data, "result", None),
+                        "error": getattr(event_data, "error", None),
+                    })
 
         duration_ms = int((time.monotonic() - start_time) * 1000)
 
@@ -794,9 +814,9 @@ class AgentEngine:
         async def execute_single(tool_call: Any) -> dict[str, Any]:
             tc_dict = _tc_to_dict(tool_call)
             tc_id = tc_dict.get("id", "")
-            function_data = tc_dict.get("function", {})
-            tool_name = function_data.get("name", "")
-            arguments_str = function_data.get("arguments", "{}")
+            function_data = tc_dict.get("function") or {}
+            tool_name = function_data.get("name", "") or ""
+            arguments_str = function_data.get("arguments", "") or "{}"
 
             start_time = time.monotonic()
 

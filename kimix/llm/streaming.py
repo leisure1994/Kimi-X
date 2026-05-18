@@ -161,26 +161,41 @@ class SSEEventParser:
         return None
 
     @staticmethod
-    def _extract_usage_event(usage_data: dict[str, Any]) -> ChatEvent:
+    def _extract_usage_event(usage_data: dict[str, Any] | Usage) -> ChatEvent:
         """
         从 usage 数据中提取 Usage 事件。
 
         Args:
-            usage_data: 原始 usage 字典
+            usage_data: 原始 usage 字典或 Usage 对象
 
         Returns:
             USAGE 类型 ChatEvent
         """
         try:
-            usage = Usage(
-                prompt_tokens=usage_data.get("prompt_tokens", 0),
-                completion_tokens=usage_data.get("completion_tokens", 0),
-                total_tokens=usage_data.get("total_tokens", 0),
-                cached_tokens=usage_data.get("prompt_tokens_details", {}).get("cached_tokens")
-                if isinstance(usage_data.get("prompt_tokens_details"), dict)
-                else None,
+            # 如果已经是 Usage Model，直接使用
+            if isinstance(usage_data, Usage):
+                return ChatEvent(type=ChatEventType.USAGE, data=usage_data)
+            # 兼容 dict
+            if isinstance(usage_data, dict):
+                usage = Usage(
+                    prompt_tokens=usage_data.get("prompt_tokens", 0),
+                    completion_tokens=usage_data.get("completion_tokens", 0),
+                    total_tokens=usage_data.get("total_tokens", 0),
+                    cached_tokens=usage_data.get("prompt_tokens_details", {}).get("cached_tokens")
+                    if isinstance(usage_data.get("prompt_tokens_details"), dict)
+                    else None,
+                )
+                return ChatEvent(type=ChatEventType.USAGE, data=usage)
+            # 其他情况尝试属性访问
+            return ChatEvent(
+                type=ChatEventType.USAGE,
+                data=Usage(
+                    prompt_tokens=getattr(usage_data, "prompt_tokens", 0) or 0,
+                    completion_tokens=getattr(usage_data, "completion_tokens", 0) or 0,
+                    total_tokens=getattr(usage_data, "total_tokens", 0) or 0,
+                    cached_tokens=getattr(usage_data, "cached_tokens", None),
+                ),
             )
-            return ChatEvent(type=ChatEventType.USAGE, data=usage)
         except Exception as e:
             logger.warning(f"Usage 解析失败: {e}")
             return ChatEvent(
@@ -205,13 +220,19 @@ class SSEEventParser:
         # 处理首个 tool_call
         tc = tool_calls[0]
         try:
-            function_data = tc.get("function", {})
+            function_data = tc.get("function", {}) if isinstance(tc, dict) else getattr(tc, "function", {})
+            if isinstance(function_data, dict):
+                func_name = function_data.get("name", "") or ""
+                func_args = function_data.get("arguments", "") or ""
+            else:
+                func_name = getattr(function_data, "name", "") or ""
+                func_args = getattr(function_data, "arguments", "") or ""
             tool_call = ToolCall(
-                id=tc.get("id", ""),
+                id=tc.get("id", "") if isinstance(tc, dict) else getattr(tc, "id", ""),
                 type="function",
                 function=ToolCallFunction(
-                    name=function_data.get("name", ""),
-                    arguments=function_data.get("arguments", ""),
+                    name=func_name,
+                    arguments=func_args,
                 ),
             )
             return ChatEvent(type=ChatEventType.TOOL_CALL, data=tool_call)
