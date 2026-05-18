@@ -27,7 +27,14 @@
 
    > 可以解压到任意位置，比如 `D:\KIMI X\Kimi-X-master`
    >
-   > 如果 GitHub 下载慢或打不开，从飞书聊天记录里下载我发的 ZIP 文件也一样。
+   > 如果 GitHub 下载慢或打不开，用 CMD 命令下载：
+   > ```cmd
+   > curl -L -o kimix.zip https://github.com/leisure1994/Kimi-X/archive/refs/heads/master.zip
+   > ```
+   > 或者 PowerShell：
+   > ```powershell
+   > Invoke-WebRequest -Uri "https://github.com/leisure1994/Kimi-X/archive/refs/heads/master.zip" -OutFile "kimix.zip"
+   > ```
 
 ### 第二步：安装运行环境
 
@@ -207,7 +214,14 @@ A：检查 `%USERPROFILE%\.kimix\config.json` 是否存在，里面要有 `"api_
 A：用 Windows Terminal 代替 CMD（微软商店下载），字体设为 Consolas。
 
 **Q：GitHub 下载不了 ZIP？**
-A：从飞书聊天记录里下载我发的 ZIP 文件，内容完全一样。
+A：用 CMD 命令直接下载（Windows 10/11 都自带）：
+```cmd
+curl -L -o kimix.zip https://github.com/leisure1994/Kimi-X/archive/refs/heads/master.zip
+```
+如果 curl 也不可用，用 PowerShell：
+```powershell
+Invoke-WebRequest -Uri "https://github.com/leisure1994/Kimi-X/archive/refs/heads/master.zip" -OutFile "kimix.zip"
+```
 
 **Q：命令报错 `Expand-Archive` 找不到？**
 A：你在 CMD 里运行了 PowerShell 的命令。换成 `tar -xf kimix.zip`。
