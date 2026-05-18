@@ -20,7 +20,44 @@
 
 ### 1.1 一键安装（推荐）
 
-**Windows (PowerShell):**
+**Windows 用户请先看：CMD vs PowerShell**
+> Windows 有两种命令行窗口，**命令不一样**：
+> - **CMD（黑底白字）** → 用 `tar -xf` 解压
+> - **PowerShell（蓝底白字）** → 用 `Expand-Archive` 解压
+> 
+> **怎么区分？** 看窗口标题栏：
+> - 标题含 "cmd" → 是 CMD
+> - 标题含 "PowerShell" 或 "Windows PowerShell" → 是 PowerShell
+> - **不知道？两个命令都试，哪个不报错用哪个**
+
+**Windows (CMD 黑窗口):**
+```cmd
+:: 第1步：下载
+powershell -Command "curl -L -o kimix.zip https://github.com/kimi-agent/kimix/releases/download/v0.91/kimix-agent-v0.91.zip"
+
+:: 第2步：解压（CMD 用 tar，Win10/Win11 都内置）
+tar -xf kimix.zip
+
+:: 如果 tar 报错，用这行替代：
+:: powershell -Command "Expand-Archive kimix.zip -DestinationPath ."
+
+:: 第3步：进入目录
+cd kimix-agent-v0.91
+
+:: 第4步：创建虚拟环境并安装
+python -m venv venv
+venv\Scripts\activate.bat
+pip install -e ".[dev]"
+
+:: 第5步：配置 API Key
+kimix auth
+:: 按提示输入从 https://platform.moonshot.cn/ 获取的 Key
+
+:: 第6步：启动！
+kimix
+```
+
+**Windows (PowerShell 蓝窗口):**
 ```powershell
 # 1. 下载并解压
 curl -L -o kimix.zip https://github.com/kimi-agent/kimix/releases/download/v0.91/kimix-agent-v0.91.zip
@@ -96,18 +133,42 @@ pip3 --version          # Mac/Linux
 ### 2.2 下载 Kimi-Agent
 
 #### 方式 A：从 GitHub 下载（推荐）
+
+**Windows (CMD):**
+```cmd
+:: 创建项目目录
+mkdir C:\Users\%USERNAME%\projects
+cd C:\Users\%USERNAME%\projects
+
+:: 下载
+curl -L -o kimix.zip https://github.com/kimi-agent/kimix/releases/download/v0.91/kimix-agent-v0.91.zip
+
+:: 解压（Win10/Win11 内置 tar）
+tar -xf kimix.zip
+
+:: 如果 tar 不存在，用 PowerShell 解压：
+:: powershell -Command "Expand-Archive kimix.zip -DestinationPath ."
+```
+
+**Windows (PowerShell):**
+```powershell
+# 创建项目目录
+mkdir $env:USERPROFILE\projects
+cd $env:USERPROFILE\projects
+
+# 下载并解压
+curl -L -o kimix.zip https://github.com/kimi-agent/kimix/releases/download/v0.91/kimix-agent-v0.91.zip
+Expand-Archive kimix.zip -DestinationPath .
+```
+
+**Mac/Linux:**
 ```bash
 # 创建项目目录
 mkdir ~/projects
 cd ~/projects
 
-# 下载最新版
+# 下载并解压
 curl -L -o kimix.zip https://github.com/kimi-agent/kimix/releases/download/v0.91/kimix-agent-v0.91.zip
-
-# 解压
-# Windows:
-Expand-Archive kimix.zip -DestinationPath .
-# Mac/Linux:
 unzip kimix.zip
 ```
 
@@ -336,13 +397,28 @@ kimix bots discord
 
 ### 5.1 快速启动（记得这3步）
 
-**Windows:**
+**Windows (CMD):**
+```cmd
+:: 1. 打开 CMD 窗口
+:: 2. 进入项目目录（把路径换成你自己的）
+cd C:\Users\%USERNAME%\Documents\kimix\kimix-agent-v0.91
+
+:: 3. 激活虚拟环境
+venv\Scripts\activate.bat
+
+:: 4. 启动
+kimix
+```
+
+**Windows (PowerShell):**
 ```powershell
-# 1. 打开 PowerShell 或 CMD
-# 2. 进入项目目录
-cd C:\Users\你的用户名\Documents\kimix\kimix-agent-v0.91
+# 1. 打开 PowerShell 窗口
+# 2. 进入项目目录（把路径换成你自己的）
+cd C:\Users\$env:USERNAME\Documents\kimix\kimix-agent-v0.91
+
 # 3. 激活虚拟环境
 venv\Scripts\activate
+
 # 4. 启动
 kimix
 ```
@@ -360,14 +436,26 @@ kimix
 
 ### 5.2 创建快捷启动脚本（推荐）
 
-**Windows — 创建 `start-kimix.bat`：**
-```powershell
-@cd /d C:\Users\你的用户名\Documents\kimix\kimix-agent-v0.91
-@call venv\Scripts\activate
-@kimix
-@pause
+**Windows (CMD) — 创建 `start-kimix.bat`：**
+1. 右键桌面 → 新建 → 文本文档
+2. 改名为 `start-kimix.bat`（注意：要显示文件扩展名，否则改的是 `start-kimix.bat.txt`）
+3. 右键编辑，粘贴以下内容（把路径换成你自己的）：
+```batch
+@echo off
+cd /d C:\Users\%USERNAME%\Documents\kimix\kimix-agent-v0.91
+call venv\Scripts\activate.bat
+kimix
+pause
 ```
-双击即可启动！
+4. 保存，双击即可启动！
+
+**Windows (PowerShell) — 创建 `start-kimix.ps1`：**
+```powershell
+# 保存为 start-kimix.ps1，双击或用右键"使用 PowerShell 运行"
+cd C:\Users\$env:USERNAME\Documents\kimix\kimix-agent-v0.91
+venv\Scripts\activate
+kimix
+```
 
 **Mac — 创建 `start-kimix.command`：**
 ```bash
@@ -412,19 +500,33 @@ kimix --batch           # 交互式纯文本模式
 ### Q3: `kimix: command not found`
 
 **原因 A：** 虚拟环境没激活
-```bash
-# Windows
+
+**CMD:**
+```cmd
+venv\Scripts\activate.bat
+```
+
+**PowerShell:**
+```powershell
 venv\Scripts\activate
-# Mac/Linux
+```
+
+**Mac/Linux:**
+```bash
 source venv/bin/activate
 ```
 
 **原因 B：** 用完整路径
-```bash
-# Windows
+
+**CMD:**
+```cmd
 venv\Scripts\kimix
-# Mac/Linux
-venv/bin/kimix
+```
+
+**PowerShell/Mac/Linux:**
+```powershell
+venv\Scripts\kimix          # Windows
+venv/bin/kimix               # Mac/Linux
 ```
 
 ### Q4: API 返回 `401 Invalid Authentication`
@@ -480,10 +582,23 @@ pip install -e ".[dev]"
 # 1. 删除项目目录
 cd ..
 rm -rf kimix-agent-v0.91
+```
 
-# 2. 删除配置（可选）
-# Windows: 删除 C:\Users\用户名\.kimix
-# Mac/Linux: rm -rf ~/.kimix
+**删除配置（可选）：**
+
+**Windows (CMD):**
+```cmd
+rmdir /s /q %USERPROFILE%\.kimix
+```
+
+**Windows (PowerShell):**
+```powershell
+Remove-Item -Recurse -Force $env:USERPROFILE\.kimix
+```
+
+**Mac/Linux:**
+```bash
+rm -rf ~/.kimix
 ```
 
 ---
