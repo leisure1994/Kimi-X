@@ -38,7 +38,7 @@ python3 -m kimix
 
 ## 版本
 
-当前: **0.85.1** — 修复 Windows TUI 抖动 + 删除虚假启动脚本
+当前: **0.86** — 新增 IM 机器人绑定（飞书/企业微信/Slack/Discord/Telegram/钉钉）
 
 历史: [CHANGELOG.md](CHANGELOG.md)
 

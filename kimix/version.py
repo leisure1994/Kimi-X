@@ -10,8 +10,8 @@ from __future__ import annotations
 # - 主版本: 不兼容的 API 变更
 # - 次版本: 向下兼容的功能新增
 # - 修订号: 向下兼容的问题修复
-__version__ = "0.85.1"
-__version_info__ = (0, 85, 1)
+__version__ = "0.87"
+__version_info__ = (0, 87, 0)
 
 # 发布信息
 __release_date__ = "2026-05-18"

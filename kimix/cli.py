@@ -1057,6 +1057,173 @@ def doctor_command(
     console.print()
 
 
+from kimix.bots.setup import list_platforms, run_setup, send_to_all
+
+
+# ============================
+# bots 命令
+# ============================
+
+bots_app = typer.Typer(
+    name="bots",
+    help="IM 机器人绑定: 飞书/企业微信/Slack/Discord/Telegram/钉钉",
+    rich_markup_mode="rich",
+)
+app.add_typer(bots_app)
+
+
+@bots_app.callback(invoke_without_command=True)
+def bots_callback(
+    ctx: typer.Context,
+) -> None:
+    """IM 机器人管理"""
+    if ctx.invoked_subcommand is not None:
+        return
+    console.print()
+    console.print(Rule("[bold]Kimi-Agent IM 机器人[/bold]", style="blue"))
+    console.print()
+    console.print("可用平台:")
+    for key, name in list_platforms().items():
+        console.print(f"   {key:<12} {name}")
+    console.print()
+    console.print("操作命令:")
+    console.print("  [cyan]$ kimix bots setup[/cyan]        交互式绑定向导")
+    console.print("  [cyan]$ kimix bots setup feishu[/cyan]  直接绑定飞书")
+    console.print("  [cyan]$ kimix bots list[/cyan]          列出已绑定")
+    console.print("  [cyan]$ kimix bots send '测试'[/cyan]  向所有平台发测试消息")
+    console.print()
+
+
+@bots_app.command("setup")
+def bots_setup(
+    platform: Optional[str] = typer.Argument(
+        None,
+        help="平台代号（feishu/wecom/slack/discord/telegram/dingtalk）",
+    ),
+) -> None:
+    """交互式绑定 IM 机器人
+
+    引导你一步步完成平台配置，输入凭证，验证连接。
+
+    示例:
+
+        [cyan]$ kimix bots setup[/cyan]           选择平台并绑定
+        [cyan]$ kimix bots setup feishu[/cyan]     直接绑定飞书
+    """
+    try:
+        asyncio.run(run_setup(platform))
+    except KeyboardInterrupt:
+        console.print("\n[yellow]已取消[/yellow]")
+    except Exception as exc:
+        console.print(f"[red]绑定失败: {exc}[/red]")
+
+
+@bots_app.command("list")
+def bots_list() -> None:
+    """列出已绑定的机器人"""
+    from kimix.bots.base import BotAdapter
+
+    configs = BotAdapter.load_all()
+    console.print()
+    console.print(Rule("[bold]已绑定的机器人[/bold]", style="blue"))
+    console.print()
+
+    if not configs:
+        console.print("[dim]暂无绑定记录[/dim]")
+        console.print("[yellow]运行: kimix bots setup 开始绑定[/yellow]")
+        return
+
+    table = Table(
+        show_header=True,
+        header_style="bold blue",
+        border_style="bright_black",
+    )
+    table.add_column("平台", style="bold")
+    table.add_column("名称")
+    table.add_column("状态")
+    table.add_column("配置路径", style="dim")
+
+    for key, cfg in configs.items():
+        status = "[green]启用[/green]" if cfg.enabled else "[red]禁用[/red]"
+        table.add_row(key, cfg.name, status, str(Path.home() / ".kimix" / "bots" / f"{key}.yaml"))
+
+    console.print(table)
+    console.print()
+
+
+@bots_app.command("send")
+def bots_send(
+    text: str = typer.Argument(
+        ...,
+        help="要发送的消息文本",
+    ),
+) -> None:
+    """向所有已绑定平台发送消息"""
+    console.print(f"\n[dim]发送消息: {text}[/dim]")
+    try:
+        results = asyncio.run(send_to_all(text))
+        console.print()
+        for platform, ok in results.items():
+            if ok:
+                console.print(f"  [green]✓[/green] {platform}: 发送成功")
+            else:
+                console.print(f"  [red]✗[/red] {platform}: 发送失败")
+        console.print()
+    except Exception as exc:
+        console.print(f"[red]发送失败: {exc}[/red]")
+
+
+@bots_app.command("run")
+def bots_run() -> None:
+    """启动机器人后台运行（常驻接收消息）
+
+    读取 ~/.kimix/bots/*.yaml 所有配置，启动对应适配器。
+    支持多平台同时运行。
+
+    示例:
+
+        [cyan]$ kimix bots run[/cyan]          启动所有已绑定平台
+    """
+    from kimix.bots.runner import BotRunner
+
+    runner = BotRunner()
+
+    async def _main() -> None:
+        config_dir = Path.home() / ".kimix" / "bots"
+        if not config_dir.exists():
+            console.print("[red]没有已绑定的平台[/red]")
+            console.print("[yellow]先运行: kimix bots setup[/yellow]")
+            return
+
+        from kimix.bots.models import Platform
+        loaded = 0
+        for yaml_file in sorted(config_dir.glob("*.yaml")):
+            try:
+                platform = Platform(yaml_file.stem)
+                ok = await runner.add_platform(platform, yaml_file)
+                if ok:
+                    loaded += 1
+            except Exception as exc:
+                console.print(f"[yellow]加载 {yaml_file.name} 失败: {exc}[/yellow]")
+
+        if loaded == 0:
+            console.print("[red]没有成功加载的平台[/red]")
+            return
+
+        console.print(f"[green]已加载 {loaded} 个平台，按 Ctrl+C 停止[/green]")
+        try:
+            await runner.start()
+        except KeyboardInterrupt:
+            pass
+        finally:
+            await runner.stop()
+
+    try:
+        asyncio.run(_main())
+    except KeyboardInterrupt:
+        pass
+
+
 # ============================
 # main 入口
 # ============================
