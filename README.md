@@ -19,22 +19,9 @@
 
 ### 第一步：下载代码
 
-1. 点下面链接下载最新版 ZIP：
+**用 CMD 或 PowerShell 下载并解压**（不需要浏览器，不需要右键）：
 
-   [👉 点这里下载 Kimi-X-master.zip](https://github.com/leisure1994/Kimi-X/archive/refs/heads/master.zip)
-
-2. 下载后**右键解压**，你会得到一个 `Kimi-X-master` 文件夹。
-
-   > 可以解压到任意位置，比如 `D:\KIMI X\Kimi-X-master`
-   >
-   > 如果 GitHub 下载慢或打不开，用 CMD 命令下载：
-   > ```cmd
-   > curl -L -o kimix.zip https://github.com/leisure1994/Kimi-X/archive/refs/heads/master.zip
-   > ```
-   > 或者 PowerShell：
-   > ```powershell
-   > Invoke-WebRequest -Uri "https://github.com/leisure1994/Kimi-X/archive/refs/heads/master.zip" -OutFile "kimix.zip"
-   > ```
+> 下面命令会自动下载、解压，你只需要复制粘贴执行。
 
 ### 第二步：安装运行环境
 
@@ -61,16 +48,23 @@
 
 **CMD（黑色窗口）:**
 ```cmd
-:: 第1步：进入解压后的文件夹（换成你自己的实际路径）
-cd /d D:\KIMI X\Kimi-X-master
+:: 第1步：下载代码到桌面（或任意位置）
+cd /d %USERPROFILE%\Desktop
+curl -L -o kimix.zip https://github.com/leisure1994/Kimi-X/archive/refs/heads/master.zip
 
-:: 第2步：创建虚拟环境
+:: 第2步：解压（Win10/11 都自带 tar）
+tar -xf kimix.zip
+
+:: 第3步：进入解压后的文件夹（文件夹名固定为 Kimi-X-master）
+cd Kimi-X-master
+
+:: 第4步：创建虚拟环境
 python -m venv venv
 
-:: 第3步：激活虚拟环境
+:: 第5步：激活虚拟环境
 venv\Scripts\activate.bat
 
-:: 第4步：安装依赖（CMD里要去掉引号）
+:: 第6步：安装依赖（CMD里要去掉引号）
 pip install -e .[dev]
 
 :: 装完会显示 Successfully installed ...
@@ -78,16 +72,23 @@ pip install -e .[dev]
 
 **PowerShell（蓝色窗口）:**
 ```powershell
-# 第1步：进入解压后的文件夹（换成你自己的实际路径）
-cd D:\KIMI X\Kimi-X-master
+# 第1步：下载代码到桌面（或任意位置）
+cd $env:USERPROFILE\Desktop
+curl -L -o kimix.zip https://github.com/leisure1994/Kimi-X/archive/refs/heads/master.zip
 
-# 第2步：创建虚拟环境
+# 第2步：解压
+Expand-Archive kimix.zip -DestinationPath .
+
+# 第3步：进入解压后的文件夹（文件夹名固定为 Kimi-X-master）
+cd Kimi-X-master
+
+# 第4步：创建虚拟环境
 python -m venv venv
 
-# 第3步：激活虚拟环境
+# 第5步：激活虚拟环境
 venv\Scripts\activate
 
-# 第4步：安装依赖
+# 第6步：安装依赖
 pip install -e ".[dev]"
 
 # 装完会显示 Successfully installed ...
@@ -140,16 +141,18 @@ venv\Scripts\kimix
 
 ## 🔄 重启电脑后怎么重新打开
 
+> 下面的路径假设你解压到了**桌面**。如果你解压到了其他位置（比如 `D:\KIMI X`），把路径换成你自己的。
+
 **CMD:**
 ```cmd
-cd /d D:\KIMI X\Kimi-X-master
+cd /d %USERPROFILE%\Desktop\Kimi-X-master
 venv\Scripts\activate.bat
 kimix
 ```
 
 **PowerShell:**
 ```powershell
-cd D:\KIMI X\Kimi-X-master
+cd $env:USERPROFILE\Desktop\Kimi-X-master
 venv\Scripts\activate
 kimix
 ```
@@ -160,12 +163,14 @@ kimix
 3. 右键编辑，粘贴：
    ```batch
    @echo off
-   cd /d D:\KIMI X\Kimi-X-master
+   cd /d %USERPROFILE%\Desktop\Kimi-X-master
    call venv\Scripts\activate.bat
    kimix
    pause
    ```
 4. 保存，以后双击这个文件就能启动
+
+> 如果你把 Kimi-X-master 解压到了其他位置（比如 `D:\KIMI X\Kimi-X-master`），把上面路径中的 `%USERPROFILE%\Desktop` 换成你自己的。
 
 ---
 
