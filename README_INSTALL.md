@@ -1,4 +1,4 @@
-# 📦 Kimi-Agent (kimix) v0.91 - 完整安装与使用指南
+# 📦 Kimi-Agent (kimix) v{VERSION} - 完整安装与使用指南
 
 > 🤖 基于 Kimi k2.6 模型的智能终端 AI Agent —— 比 deepseek-TUI 更智能
 
@@ -33,7 +33,7 @@
 **Windows (CMD 黑窗口):**
 ```cmd
 :: 第1步：下载
-powershell -Command "curl -L -o kimix.zip https://github.com/kimi-agent/kimix/releases/download/v0.91/kimix-agent-v0.91.zip"
+powershell -Command "curl -L -o kimix.zip https://github.com/kimi-agent/kimix/releases/download/v{VERSION}/kimix-agent-v{VERSION}.zip"
 
 :: 第2步：解压（CMD 用 tar，Win10/Win11 都内置）
 tar -xf kimix.zip
@@ -42,7 +42,7 @@ tar -xf kimix.zip
 :: powershell -Command "Expand-Archive kimix.zip -DestinationPath ."
 
 :: 第3步：进入目录
-cd kimix-agent-v0.91
+cd kimix-agent-v{VERSION}
 
 :: 第4步：创建虚拟环境并安装
 python -m venv venv
@@ -60,9 +60,9 @@ kimix
 **Windows (PowerShell 蓝窗口):**
 ```powershell
 # 1. 下载并解压
-curl -L -o kimix.zip https://github.com/kimi-agent/kimix/releases/download/v0.91/kimix-agent-v0.91.zip
+curl -L -o kimix.zip https://github.com/kimi-agent/kimix/releases/download/v{VERSION}/kimix-agent-v{VERSION}.zip
 Expand-Archive kimix.zip -DestinationPath .
-cd kimix-agent-v0.91
+cd kimix-agent-v{VERSION}
 
 # 2. 创建虚拟环境并安装
 python -m venv venv
@@ -80,9 +80,9 @@ kimix
 **Mac / Linux (Bash/Zsh):**
 ```bash
 # 1. 下载并解压
-curl -L -o kimix.zip https://github.com/kimi-agent/kimix/releases/download/v0.91/kimix-agent-v0.91.zip
+curl -L -o kimix.zip https://github.com/kimi-agent/kimix/releases/download/v{VERSION}/kimix-agent-v{VERSION}.zip
 unzip kimix.zip
-cd kimix-agent-v0.91
+cd kimix-agent-v{VERSION}
 
 # 2. 创建虚拟环境并安装
 python3 -m venv venv
@@ -136,46 +136,55 @@ pip3 --version          # Mac/Linux
 
 **Windows (CMD):**
 ```cmd
-:: 创建项目目录
-mkdir C:\Users\%USERNAME%\projects
-cd C:\Users\%USERNAME%\projects
+:: 第1步：创建目录（换成你自己的路径，如 D:\KIMI X）
+mkdir D:\KIMI X
+cd /d D:\KIMI X
 
-:: 下载
-curl -L -o kimix.zip https://github.com/kimi-agent/kimix/releases/download/v0.91/kimix-agent-v0.91.zip
+:: 第2步：下载
+curl -L -o kimix.zip https://github.com/leisure1994/Kimi-X/releases/latest/download/kimix-agent.zip
 
-:: 解压（Win10/Win11 内置 tar）
+:: 第3步：解压（Win10/Win11 都内置 tar）
 tar -xf kimix.zip
 
-:: 如果 tar 不存在，用 PowerShell 解压：
+:: 如果 tar 报错，用这行替代：
 :: powershell -Command "Expand-Archive kimix.zip -DestinationPath ."
+
+:: 第4步：进入目录（文件夹名以实际解压出来的为准）
+cd Kimi-X-master
 ```
 
 **Windows (PowerShell):**
 ```powershell
-# 创建项目目录
-mkdir $env:USERPROFILE\projects
-cd $env:USERPROFILE\projects
+# 第1步：创建目录（换成你自己的路径）
+mkdir D:\KIMI X
+cd D:\KIMI X
 
-# 下载并解压
-curl -L -o kimix.zip https://github.com/kimi-agent/kimix/releases/download/v0.91/kimix-agent-v0.91.zip
+# 第2步：下载并解压
+curl -L -o kimix.zip https://github.com/leisure1994/Kimi-X/releases/latest/download/kimix-agent.zip
 Expand-Archive kimix.zip -DestinationPath .
+
+# 第3步：进入目录（文件夹名以实际解压出来的为准）
+cd Kimi-X-master
 ```
 
 **Mac/Linux:**
 ```bash
 # 创建项目目录
-mkdir ~/projects
-cd ~/projects
+mkdir ~/Kimi-X
+cd ~/Kimi-X
 
 # 下载并解压
-curl -L -o kimix.zip https://github.com/kimi-agent/kimix/releases/download/v0.91/kimix-agent-v0.91.zip
+curl -L -o kimix.zip https://github.com/leisure1994/Kimi-X/releases/latest/download/kimix-agent.zip
 unzip kimix.zip
+
+# 进入目录（文件夹名以实际解压出来的为准）
+cd Kimi-X-master
 ```
 
 #### 方式 B：从飞书/微信接收的 ZIP 文件
-1. 下载飞书/微信发给你的 `kimix-agent-v0.91.zip`
+1. 下载飞书/微信发给你的 `kimix-agent-v{VERSION}.zip`
 2. 解压到任意目录（如 `C:\Users\你的用户名\Documents\kimix` 或 `~/projects`）
-3. 打开终端，cd 到解压后的 `kimix-agent-v0.91` 目录
+3. 打开终端，cd 到解压后的 `kimix-agent-v{VERSION}` 目录
 
 ---
 
@@ -186,20 +195,46 @@ unzip kimix.zip
 - 防止与其他项目依赖冲突
 - 方便后续升级和卸载
 
-**Windows:**
-```powershell
-cd kimix-agent-v0.91
+**Windows (CMD):**
+```cmd
+:: 第1步：进入项目目录（换成你自己的实际路径）
+cd /d D:\KIMI X\Kimi-X-master
+
+:: 第2步：创建虚拟环境
 python -m venv venv
-venv\Scripts\activate
-# 你会看到命令行前面出现 (venv)
+
+:: 第3步：激活虚拟环境
+venv\Scripts\activate.bat
+
+:: 第4步：安装依赖（注意：CMD里去掉引号）
+pip install -e .[dev]
+
+:: 第5步：配置 API Key
+kimix auth
+
+:: 第6步：启动
+kimix
 ```
 
-**Mac/Linux:**
-```bash
-cd kimix-agent-v0.91
-python3 -m venv venv
-source venv/bin/activate
-# 你会看到命令行前面出现 (venv)
+**Windows (PowerShell):**
+```powershell
+# 第1步：进入项目目录（换成你自己的实际路径）
+cd D:\KIMI X\Kimi-X-master
+
+# 第2步：创建虚拟环境
+python -m venv venv
+
+# 第3步：激活虚拟环境
+venv\Scripts\activate
+
+# 第4步：安装依赖
+pip install -e ".[dev]"
+
+# 第5步：配置 API Key
+kimix auth
+
+# 第6步：启动
+kimix
 ```
 
 **⚠️ 常见错误：**
@@ -223,7 +258,7 @@ pip install -e ".[dev]"
 这会安装所有依赖，包括：
 - `openai` — Kimi API 客户端
 - `rich` — 终端美化
-- `pydantic-settings` — 配置管理（v0.91 新增）
+- `pydantic-settings` — 配置管理（v{VERSION} 新增）
 - 等等...
 
 **安装时间**：2-5 分钟（取决于网络速度）
@@ -401,7 +436,7 @@ kimix bots discord
 ```cmd
 :: 1. 打开 CMD 窗口
 :: 2. 进入项目目录（把路径换成你自己的）
-cd C:\Users\%USERNAME%\Documents\kimix\kimix-agent-v0.91
+cd C:\Users\%USERNAME%\Documents\kimix\kimix-agent-v{VERSION}
 
 :: 3. 激活虚拟环境
 venv\Scripts\activate.bat
@@ -414,7 +449,7 @@ kimix
 ```powershell
 # 1. 打开 PowerShell 窗口
 # 2. 进入项目目录（把路径换成你自己的）
-cd C:\Users\$env:USERNAME\Documents\kimix\kimix-agent-v0.91
+cd C:\Users\$env:USERNAME\Documents\kimix\kimix-agent-v{VERSION}
 
 # 3. 激活虚拟环境
 venv\Scripts\activate
@@ -427,7 +462,7 @@ kimix
 ```bash
 # 1. 打开终端
 # 2. 进入项目目录
-cd ~/projects/kimix-agent-v0.91
+cd ~/projects/kimix-agent-v{VERSION}
 # 3. 激活虚拟环境
 source venv/bin/activate
 # 4. 启动
@@ -442,7 +477,7 @@ kimix
 3. 右键编辑，粘贴以下内容（把路径换成你自己的）：
 ```batch
 @echo off
-cd /d C:\Users\%USERNAME%\Documents\kimix\kimix-agent-v0.91
+cd /d C:\Users\%USERNAME%\Documents\kimix\kimix-agent-v{VERSION}
 call venv\Scripts\activate.bat
 kimix
 pause
@@ -452,14 +487,14 @@ pause
 **Windows (PowerShell) — 创建 `start-kimix.ps1`：**
 ```powershell
 # 保存为 start-kimix.ps1，双击或用右键"使用 PowerShell 运行"
-cd C:\Users\$env:USERNAME\Documents\kimix\kimix-agent-v0.91
+cd C:\Users\$env:USERNAME\Documents\kimix\kimix-agent-v{VERSION}
 venv\Scripts\activate
 kimix
 ```
 
 **Mac — 创建 `start-kimix.command`：**
 ```bash
-cd ~/projects/kimix-agent-v0.91
+cd ~/projects/kimix-agent-v{VERSION}
 source venv/bin/activate
 kimix
 ```
@@ -472,7 +507,7 @@ chmod +x start-kimix.command
 **Linux — 创建别名：**
 在 `~/.bashrc` 或 `~/.zshrc` 中添加：
 ```bash
-alias kimix-start='cd ~/projects/kimix-agent-v0.91 && source venv/bin/activate && kimix'
+alias kimix-start='cd ~/projects/kimix-agent-v{VERSION} && source venv/bin/activate && kimix'
 ```
 然后 `source ~/.bashrc`，以后输入 `kimix-start` 即可启动！
 
@@ -562,7 +597,7 @@ pip install -e ".[dev]" -i https://mirrors.aliyun.com/pypi/simple/
 ```bash
 # 1. 备份旧版本
 cd ..
-cp -r kimix-agent-v0.91 kimix-agent-v0.91-backup
+cp -r kimix-agent-v{VERSION} kimix-agent-v{VERSION}-backup
 
 # 2. 下载新版
 curl -L -o kimix.zip https://github.com/kimi-agent/kimix/releases/download/v0.92/kimix-agent-v0.92.zip
@@ -581,7 +616,7 @@ pip install -e ".[dev]"
 ```bash
 # 1. 删除项目目录
 cd ..
-rm -rf kimix-agent-v0.91
+rm -rf kimix-agent-v{VERSION}
 ```
 
 **删除配置（可选）：**
@@ -655,5 +690,5 @@ sudo dnf install python3.12 python3.12-pip
 ---
 
 **最后更新：2026-05-19**
-**版本：v0.91**
+**版本：v{VERSION}**
 **GitHub：https://github.com/kimi-agent/kimix**
