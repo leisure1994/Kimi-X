@@ -21,11 +21,11 @@
 3. 下载完成后，**右键 ZIP → 全部解压缩** → 选一个文件夹（比如桌面）
 
 ### 方法 B：飞书下载（推荐，GitHub 被墙时用）
-1. 在飞书聊天记录里找到我发的 `kimix-agent-v0.89.zip`
+1. 在飞书聊天记录里找到我发的 `kimix-agent-v0.90.zip`
 2. 点击下载
 3. 下载完成后，**右键 ZIP → 全部解压缩**
 
-解压缩后你会看到一个 `Kimi-X-master` 或 `kimix-agent-v0.89` 文件夹，这就是你的代码。
+解压缩后你会看到一个 `Kimi-X-master` 或 `kimix-agent-v0.90` 文件夹，这就是你的代码。
 
 ---
 
@@ -132,7 +132,7 @@ kimix
 按回车，你应该会看到 Kimi-Agent 的欢迎界面。
 
 **成功标志：**
-- 看到类似 `Kimi-Agent v0.89` 的字样
+- 看到类似 `Kimi-Agent v0.90` 的字样
 - 底部有个输入框在闪，等你打字
 
 ---
@@ -211,4 +211,4 @@ GitHub Issues：https://github.com/leisure1994/Kimi-X/issues
 
 ---
 
-**当前版本：0.89**
+**当前版本：0.90**

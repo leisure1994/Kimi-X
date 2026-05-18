@@ -1,6 +1,6 @@
 [project]
 name = "kimix"
-version = "0.89"
+version = "0.90"
 description = "Kimi k2.6 powered terminal AI agent - smarter than deepseek-TUI"
 readme = "README.md"
 license = { text = "MIT" }

@@ -1,5 +1,11 @@
 # Kimi-Agent v0.85 变更日志
 
+## [0.90] - 2026-05-18
+
+### 修复
+- **彻底修复 Windows CMD TUI 抖动** — 不再用 Rich Live 的 async 模式，改为简化模式（直接 print + input），自动检测 Windows CMD 并切换
+- 修复 `tui.py` 中版本号硬编码为 `1.0.0` 的问题，改为使用 `__version__`
+
 ## [0.89] - 2026-05-18
 
 ### 文档

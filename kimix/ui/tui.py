@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import sys
 import time
 from datetime import datetime
@@ -44,6 +45,7 @@ from kimix.ui.renderers import (
     ToolResultRenderer,
     CostRenderer,
 )
+from kimix.version import __version__
 
 # / 命令定义
 COMMANDS: dict[str, dict[str, str]] = {
@@ -91,7 +93,7 @@ class TUIApp:
 
         # 组件
         self.chat_history = ChatHistory(wrap_width=self.console.width - 10)
-        self.status_bar = StatusBar(current_mode=mode, version="1.0.0")
+        self.status_bar = StatusBar(current_mode=mode, version=__version__)
         self.input_box = InputBox(prompt="> ")
 
         # 渲染器
@@ -177,7 +179,7 @@ class TUIApp:
         title = Text.assemble(
             Text("🤖 ", style="magenta"),
             Text("Kimi-Agent", style="bold magenta"),
-            Text(" v1.0.0", style="magenta dim"),
+            Text(f" v{__version__}", style="magenta dim"),
         )
 
         mode_text = Text(
@@ -251,7 +253,7 @@ class TUIApp:
     async def run(self) -> int:
         """运行 TUI 主循环
 
-        启动 Rich Live 并进入交互循环，持续处理用户输入。
+        检测终端环境，Windows CMD 使用简化模式避免抖动。
 
         Returns:
             int: 退出码，0 表示正常退出
@@ -264,6 +266,106 @@ class TUIApp:
 
         self.running = True
 
+        # Windows CMD 检测：不支持 Rich Live 的终端使用简化模式
+        is_windows = sys.platform == "win32"
+        is_windows_terminal = os.environ.get("WT_SESSION") is not None
+        is_vscode = os.environ.get("TERM_PROGRAM") == "vscode"
+        force_simple = os.environ.get("KIMIX_SIMPLE_UI", "").lower() in ("1", "true", "yes")
+
+        if is_windows and not is_windows_terminal and not is_vscode or force_simple:
+            return await self._run_simple()
+
+        return await self._run_rich()
+
+    async def _run_simple(self) -> int:
+        """简化模式 — Windows CMD 兼容
+
+        不使用 Rich Live，直接打印 + input()，彻底避免抖动。
+        """
+        print(f"\n🤖 Kimi-Agent {__version__} | 模式: {self.current_mode.value}")
+        print("输入 /help 查看帮助，/exit 退出。\n")
+
+        while self.running:
+            try:
+                # 读取输入（阻塞式，CMD 原生支持）
+                user_input = input("> ").strip()
+
+                if not user_input:
+                    continue
+
+                # 处理 / 命令
+                if user_input.startswith("/"):
+                    should_exit = await self._handle_command(user_input)
+                    if should_exit:
+                        break
+                    continue
+
+                # 显示用户消息
+                print(f"\n[你] {user_input}")
+
+                # 处理流式响应
+                await self._process_streaming_simple(user_input)
+
+            except (EOFError, KeyboardInterrupt):
+                print("\n已退出。")
+                self.running = False
+            except Exception as exc:
+                print(f"\n[错误] {exc}")
+
+        print("\n👋 再见！")
+        return 0
+
+    async def _process_streaming_simple(self, query: str) -> None:
+        """简化模式的流式处理（直接打印，无 Live）"""
+        if self.engine is None:
+            print("[错误] 引擎未初始化")
+            return
+
+        self._is_streaming = True
+        current_agent_content = ""
+        current_thinking = ""
+
+        print("[Agent] ", end="", flush=True)
+
+        try:
+            async for event in self.engine.run(query):
+                ev_type = event["type"]
+                data = event.get("data", {})
+
+                if ev_type == "thinking":
+                    thinking_text = data.get("text", "")
+                    current_thinking += thinking_text
+
+                elif ev_type == "content":
+                    chunk = data.get("text", "")
+                    current_agent_content += chunk
+                    print(chunk, end="", flush=True)
+
+                elif ev_type == "tool_start":
+                    tool_name = data.get("name", "unknown")
+                    print(f"\n[工具] {tool_name} 执行中...", end=" ", flush=True)
+
+                elif ev_type == "tool_end":
+                    duration_ms = data.get("duration_ms", 0)
+                    print(f"✓ ({duration_ms}ms)")
+                    print("[Agent] ", end="", flush=True)
+
+                elif ev_type == "done":
+                    self._is_streaming = False
+                    break
+
+                elif ev_type == "error":
+                    error_msg = data.get("message", "未知错误")
+                    print(f"\n[错误] {error_msg}")
+
+        except Exception as exc:
+            print(f"\n[错误] 流式处理异常: {exc}")
+
+        self._is_streaming = False
+        print()  # 换行
+
+    async def _run_rich(self) -> int:
+        """Rich Live 模式 — 现代终端（Windows Terminal / iTerm2 / GNOME Terminal）"""
         # 欢迎消息
         self.chat_history.add_message(
             "system",
@@ -274,15 +376,15 @@ class TUIApp:
             "输入 /help 查看帮助，/exit 退出。",
         )
 
-        # 启动 Live
+        # 启动 Live（刷新率极低，避免抖动）
         layout = self.build_layout()
-        refresh_rate = 4  # Windows CMD 建议 4fps，避免抖动
+        refresh_rate = 2  # 2fps，现代终端也保持低刷新率
 
         with Live(
             layout,
             console=self.console,
             refresh_per_second=refresh_rate,
-            screen=False,  # Windows CMD 非全屏模式更稳定
+            screen=True,  # 全屏模式更稳定
             transient=False,
         ) as live:
             self._live = live
@@ -291,9 +393,8 @@ class TUIApp:
                 try:
                     # 更新输入提示
                     self._update_input()
-                    live.refresh()
 
-                    # 读取用户输入（使用标准输入）
+                    # 读取用户输入
                     user_input = await self._read_input_async()
 
                     if not user_input.strip():
@@ -325,7 +426,6 @@ class TUIApp:
                     self._update_chat()
                     self._update_info_bar()
                     self._update_status_bar()
-                    live.refresh()
 
                 except (EOFError, KeyboardInterrupt):
                     self.chat_history.add_message("system", "已退出。")
@@ -339,6 +439,7 @@ class TUIApp:
         self.console.clear()
         self.console.print("[yellow]👋 再见！[/yellow]")
         return 0
+
 
     async def _read_input_async(self) -> str:
         """异步读取用户输入
@@ -695,7 +796,7 @@ class TUIApp:
                 for m in self.chat_history.messages
             ]
             data = {
-                "version": "1.0.0",
+                "version": __version__,
                 "mode": self.current_mode.value,
                 "timestamp": datetime.now().isoformat(),
                 "cost_usd": self.cost_renderer.session_cost,
