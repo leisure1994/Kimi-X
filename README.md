@@ -19,7 +19,10 @@
 
 ### 第一步：下载代码
 
-**用 CMD 或 PowerShell 下载并解压**（不需要浏览器，不需要右键）：
+**直接下载 ZIP（推荐）：**
+[⬇️ 点击下载 master.zip](https://github.com/leisure1994/Kimi-X/archive/refs/heads/master.zip)
+
+或者用命令行下载并解压（不需要浏览器，不需要右键）：
 
 > 下面命令会自动下载、解压，你只需要复制粘贴执行。
 
