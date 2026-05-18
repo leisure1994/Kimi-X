@@ -221,9 +221,11 @@ def _init_engine(mode: AgentMode) -> AgentEngine | None:
 @app.callback(invoke_without_command=True)
 def main_callback(
     ctx: typer.Context,
-    query: Optional[str] = typer.Argument(
+    query: Optional[str] = typer.Option(
         None,
-        help="询问 Agent 的问题（不提供则启动交互式 TUI）",
+        "--query",
+        "-q",
+        help="一次性查询文本（简写：kimix '你好' 等效于 kimix -q '你好'）",
         show_default=False,
     ),
     mode: Optional[str] = typer.Option(
@@ -752,7 +754,7 @@ def session_list(
         from kimix.core.session import SessionManager
 
         session_manager = SessionManager()
-        sessions = session_manager.list_sessions(limit=limit)
+        sessions = asyncio.run(session_manager.list_sessions(limit=limit))
 
         if not sessions:
             console.print("[dim]暂无会话记录[/dim]")
@@ -894,7 +896,7 @@ def tool_list() -> None:
         from kimix.tools.registry import ToolRegistry
 
         registry = ToolRegistry()
-        registry.register_defaults()
+        registry.auto_discover()
         tools = registry.list_tools()
 
         table = Table(
@@ -1040,7 +1042,7 @@ def doctor_command(
 
         registry = ToolRegistry()
         # 尝试注册默认工具
-        registry.register_defaults()
+        registry.auto_discover()
         tools = registry.list_tools()
         console.print(
             f"  [green]✓[/green] 工具系统正常 ([cyan]{len(tools)}[/cyan] 个工具)"
@@ -1061,7 +1063,11 @@ def doctor_command(
     try:
         from kimix.memory.manager import MemoryManager
 
-        memory_manager = MemoryManager()
+        # 诊断模式下使用临时路径
+        temp_project = Path.home() / ".kimix" / "doctor_check"
+        temp_db = temp_project / "memory.db"
+        temp_project.mkdir(parents=True, exist_ok=True)
+        memory_manager = MemoryManager(project_path=temp_project, db_path=temp_db)
         console.print("  [green]✓[/green] 记忆系统正常")
         checks_passed += 1
     except ImportError:
@@ -1327,6 +1333,18 @@ def main() -> None:
             sys.stderr.reconfigure(encoding="utf-8", errors="replace")
         except (AttributeError, OSError):
             pass
+
+    # 注册命令列表（用于简写检测）
+    _REGISTERED_COMMANDS = {"auth", "doctor", "session", "tool", "config", "bots"}
+
+    # 支持 kimix "你好" 简写（把裸参数转为 -q 选项）
+    if len(sys.argv) >= 2 and not sys.argv[1].startswith("-") and sys.argv[1] not in _REGISTERED_COMMANDS:
+        # sys.argv[1] 不是命令名也不是选项 → 当作查询文本
+        # 例如：kimix "你好" → kimix -q "你好"
+        # 或：kimix "怎么部署项目" → kimix -q "怎么部署项目"
+        # 也支持带空格的多词参数（因为 shell 会自动处理引号）
+        new_argv = [sys.argv[0], "-q"] + sys.argv[1:]
+        sys.argv = new_argv
 
     try:
         app()
