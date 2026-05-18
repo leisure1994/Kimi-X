@@ -29,14 +29,14 @@ class ToolCallFunction(BaseModel):
 
 class ToolCall(BaseModel):
     """工具调用定义，用于 assistant 消息中的 tool_calls"""
-    id: str = Field(description="工具调用唯一标识")
+    id: str | None = Field(default=None, description="工具调用唯一标识")
     type: Literal["function"] = Field(default="function", description="调用类型")
     function: ToolCallFunction = Field(description="函数调用详情")
 
     def to_dict(self) -> dict[str, Any]:
         """转换为字典（兼容测试接口）"""
         return {
-            "id": self.id,
+            "id": self.id or "",
             "type": self.type,
             "function": {
                 "name": self.function.name,
@@ -61,6 +61,7 @@ class Message(BaseModel):
     """
     role: MessageRole = Field(description="消息角色")
     content: str | None = Field(default=None, description="消息内容文本")
+    reasoning_content: str | None = Field(default=None, description="模型的思考过程内容（thinking 模式）")
     tool_calls: list[ToolCall] | None = Field(default=None, description="助手发起的工具调用列表")
     tool_call_id: str | None = Field(default=None, description="工具消息对应的调用 ID")
     name: str | None = Field(default=None, description="工具名称（用于 function 角色）")
@@ -95,10 +96,13 @@ class Message(BaseModel):
         if self.content is not None:
             result["content"] = self.content
 
+        if self.reasoning_content is not None:
+            result["reasoning_content"] = self.reasoning_content
+
         if self.tool_calls is not None:
             result["tool_calls"] = [
                 {
-                    "id": tc.id,
+                    "id": tc.id or "",
                     "type": tc.type,
                     "function": {
                         "name": tc.function.name,
@@ -129,6 +133,7 @@ class Message(BaseModel):
         """
         role = MessageRole(data.get("role", "user"))
         content = data.get("content")
+        reasoning_content = data.get("reasoning_content")
         tool_call_id = data.get("tool_call_id")
         name = data.get("name")
 
@@ -139,7 +144,7 @@ class Message(BaseModel):
                 func = tc.get("function", {})
                 tool_calls.append(
                     ToolCall(
-                        id=tc.get("id", ""),
+                        id=tc.get("id") or "",
                         type=tc.get("type", "function"),
                         function=ToolCallFunction(
                             name=func.get("name", ""),
@@ -151,6 +156,7 @@ class Message(BaseModel):
         return cls(
             role=role,
             content=content,
+            reasoning_content=reasoning_content,
             tool_calls=tool_calls,
             tool_call_id=tool_call_id,
             name=name,
@@ -167,9 +173,9 @@ class Message(BaseModel):
         return cls(role=MessageRole.USER, content=content)
 
     @classmethod
-    def assistant(cls, content: str | None = None, tool_calls: list[ToolCall] | None = None) -> Message:
+    def assistant(cls, content: str | None = None, reasoning_content: str | None = None, tool_calls: list[ToolCall] | None = None) -> Message:
         """快速创建助手消息"""
-        return cls(role=MessageRole.ASSISTANT, content=content, tool_calls=tool_calls)
+        return cls(role=MessageRole.ASSISTANT, content=content, reasoning_content=reasoning_content, tool_calls=tool_calls)
 
     @classmethod
     def tool(cls, tool_call_id: str, content: str, is_error: bool = False) -> Message:

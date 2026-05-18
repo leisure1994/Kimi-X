@@ -583,6 +583,8 @@ class AgentEngine:
                         "role": "assistant",
                         "content": current_content,
                     }
+                    if current_thinking:
+                        assistant_msg["reasoning_content"] = current_thinking
                     if current_tool_calls:
                         assistant_msg["tool_calls"] = current_tool_calls
                     messages.append(assistant_msg)
