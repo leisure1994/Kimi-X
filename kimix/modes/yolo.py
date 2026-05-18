@@ -114,8 +114,8 @@ class YoloMode(BaseMode):
                 blocked_calls = []
 
                 for tc in tool_calls:
-                    tc_name = tc.get("function", {}).get("name", "")
-                    tc_args = tc.get("function", {}).get("arguments", "")
+                    tc_name = tc.function.name
+                    tc_args = tc.function.arguments
 
                     if self._is_extremely_dangerous(tc_name, tc_args):
                         blocked_calls.append(tc)
@@ -125,12 +125,12 @@ class YoloMode(BaseMode):
                 # 拦截极度危险命令
                 if blocked_calls:
                     for tc in blocked_calls:
-                        tc_name = tc.get("function", {}).get("name", "")
+                        tc_name = tc.function.name
                         yield create_thinking_event(
                             f"🛡️ 安全拦截：阻止执行极度危险操作 '{tc_name}'"
                         )
                         yield create_event("tool_result", {
-                            "tool_call_id": tc.get("id", ""),
+                            "tool_call_id": tc.id,
                             "name": tc_name,
                             "result": None,
                             "error": "安全拦截：此操作被系统安全策略阻止",

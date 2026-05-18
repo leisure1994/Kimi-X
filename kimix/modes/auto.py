@@ -145,8 +145,8 @@ class AutoMode(BaseMode):
                 log_calls = []
 
                 for tc in tool_calls:
-                    tc_name = tc.get("function", {}).get("name", "")
-                    tc_params = tc.get("function", {}).get("arguments", "")
+                    tc_name = tc.function.name
+                    tc_params = tc.function.arguments
 
                     risk_score = self._calculate_risk_score(tc_name, tc_params)
 
@@ -177,7 +177,7 @@ class AutoMode(BaseMode):
                 # 记录中低风险操作并执行
                 if log_calls:
                     for tc in log_calls:
-                        tc_name = tc.get("function", {}).get("name", "")
+                        tc_name = tc.function.name
                         yield create_thinking_event(
                             f"[自动执行] {tc_name}（已记录，风险评分："
                             f"{self._calculate_risk_score(tc_name, {}):.2f}）"
@@ -190,8 +190,8 @@ class AutoMode(BaseMode):
                 # 高风险工具：生成审批事件
                 if confirm_calls:
                     for tc in confirm_calls:
-                        tc_name = tc.get("function", {}).get("name", "")
-                        tc_args = tc.get("function", {}).get("arguments", "")
+                        tc_name = tc.function.name
+                        tc_args = tc.function.arguments
                         yield create_thinking_event(
                             f"⏸️ 需确认：{tc_name} (风险评分："
                             f"{self._calculate_risk_score(tc_name, tc_args):.2f})"

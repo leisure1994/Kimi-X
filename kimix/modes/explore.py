@@ -96,7 +96,7 @@ class ExploreMode(BaseMode):
                 blocked_calls = []
 
                 for tc in tool_calls:
-                    tc_name = tc.get("function", {}).get("name", "")
+                    tc_name = tc.function.name
                     if tc_name in self.ALLOWED_TOOLS or self.is_readonly_tool(tc_name):
                         filtered_calls.append(tc)
                     else:

@@ -123,8 +123,8 @@ class AgentMode(BaseMode):
                 needs_approval = []
 
                 for tc in tool_calls:
-                    tc_name = tc.get("function", {}).get("name", "")
-                    tc_params = tc.get("function", {}).get("arguments", {})
+                    tc_name = tc.function.name
+                    tc_params = tc.function.arguments
 
                     if self._is_auto_approved(tc_name, tc_params):
                         approved_calls.append(tc)
@@ -141,9 +141,9 @@ class AgentMode(BaseMode):
                 # 对需审批的工具生成审批事件
                 if needs_approval:
                     for tc in needs_approval:
-                        tc_name = tc.get("function", {}).get("name", "")
-                        tc_args = tc.get("function", {}).get("arguments", "")
-                        tc_id = tc.get("id", "")
+                        tc_name = tc.function.name
+                        tc_args = tc.function.arguments
+                        tc_id = tc.id
 
                         yield create_event("thinking", {
                             "text": f"⏸️ 等待审批：工具 '{tc_name}' (参数: {tc_args})",
@@ -165,7 +165,7 @@ class AgentMode(BaseMode):
 
         # 如有待审批工具，在结束时提示
         if pending_tool_calls:
-            tool_names = [tc.get("function", {}).get("name", "") for tc in pending_tool_calls]
+            tool_names = [tc.function.name for tc in pending_tool_calls]
             yield create_content_event(
                 f"\n\n[待审批操作] 以下工具调用需要您的确认：\n"
                 + "\n".join(f"  - {name}" for name in tool_names)
