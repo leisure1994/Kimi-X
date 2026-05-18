@@ -114,7 +114,7 @@ class ReplyMessage:
     feishu_card: dict | None = None          # 飞书卡片 JSON
     discord_embed: dict | None = None        # Discord Embed
     slack_blocks: list[dict] | None = None   # Slack Block Kit
-    markdown: bool = False                   # 是否支持 Markdown
+    markdown: bool = False                   # 是否支持 Markdown 渲染
 
     @classmethod
     def from_text(cls, text: str) -> Self:

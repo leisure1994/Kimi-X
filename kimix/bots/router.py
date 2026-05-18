@@ -51,7 +51,7 @@ class MessageRouter:
                     f"⚠️ 处理出错: {type(exc).__name__}: {exc}"
                 )
 
-            send_fn = self._send_callbacks.get(chat_key)
+            send_fn = self._send_callbacks.get(chat_key) or self._send_callbacks.get(msg.platform.value)
             if send_fn:
                 try:
                     await send_fn(msg.sender_id, reply)

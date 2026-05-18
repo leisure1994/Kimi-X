@@ -1,6 +1,6 @@
 [project]
 name = "kimix"
-version = "1.0.0"
+version = "0.87"
 description = "Kimi k2.6 powered terminal AI agent - smarter than deepseek-TUI"
 readme = "README.md"
 license = { text = "MIT" }
@@ -39,6 +39,7 @@ dependencies = [
     "gitpython>=3.1",
     "platformdirs>=4.0",
     "watchdog>=4.0",
+    "websockets>=12.0",
 ]
 
 [project.optional-dependencies]

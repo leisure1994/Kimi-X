@@ -60,9 +60,12 @@ class BotRunner:
             print(f"[bots] {platform.value}: 配置加载失败")
             return False
 
-        self._adapters[platform] = adapter
-        # 把适配器消息回调绑定到路由
         adapter.on_message = self._router.route
+        # 注册发送回调（按平台名作为 fallback key）
+        self._router.register_sender(
+            platform.value,
+            lambda to, msg: adapter.send(to, msg),
+        )
         print(f"[bots] {platform.value}: 已加载，等待启动...")
         return True
 
