@@ -1,0 +1,27 @@
+# Coverage configuration
+# 目标覆盖率: ≥80%
+
+[run]
+source = kimix
+branch = True
+omit =
+    */tests/*
+    */__pycache__/*
+    */.pytest_cache/*
+    kimix/__main__.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise AssertionError
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
+
+fail_under = 80
+show_missing = True
+skip_covered = False
+
+[html]
+directory = htmlcov

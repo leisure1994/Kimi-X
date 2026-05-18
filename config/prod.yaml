@@ -1,0 +1,22 @@
+# 生产环境配置
+debug: false
+log_level: "INFO"
+llm:
+  default_provider: "kimi"
+  timeout: 120
+  max_retries: 5
+memory:
+  working_capacity: 100
+  episodic_capacity: 5000
+  auto_summarize: true
+sandbox:
+  enabled: true
+  strict_mode: true
+  whitelist: []  # 生产环境白名单为空，需显式授权
+economy:
+  clawtip_sandbox: false
+  auto_prompt: true
+  idle_threshold: 10800  # 3小时
+observability:
+  metrics_enabled: true
+  tracing_enabled: true

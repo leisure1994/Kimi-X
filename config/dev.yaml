@@ -1,0 +1,19 @@
+# 开发环境配置
+debug: true
+log_level: "DEBUG"
+llm:
+  default_provider: "kimi"
+  timeout: 60
+  max_retries: 3
+memory:
+  working_capacity: 50
+  episodic_capacity: 1000
+  auto_summarize: false
+sandbox:
+  enabled: true
+  strict_mode: false
+  whitelist: ["print", "len", "range"]
+economy:
+  clawtip_sandbox: true
+  auto_prompt: false
+  idle_threshold: 1800  # 30分钟（开发环境缩短）

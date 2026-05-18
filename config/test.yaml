@@ -1,0 +1,17 @@
+# 测试环境配置
+debug: true
+log_level: "DEBUG"
+llm:
+  default_provider: "mock"
+  timeout: 10
+  max_retries: 1
+memory:
+  working_capacity: 10
+  episodic_capacity: 100
+  auto_summarize: false
+sandbox:
+  enabled: true
+  strict_mode: false
+economy:
+  clawtip_sandbox: true
+  auto_prompt: false
