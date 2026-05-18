@@ -1,6 +1,6 @@
 # Kimi-Agent v0.85 变更日志
 
-## [0.87] - 2026-05-18
+## [0.88] - 2026-05-18
 
 ### 重构
 - **IM 机器人系统全面重写**（参考 LangBot / AstrBot / OpenClaw / ClawdBot）
@@ -16,6 +16,13 @@
 
 ### CLI
 - 新增 `kimix bots run` — 启动机器人后台服务
+
+### 修复
+- `ReplyMessage` 补充 `markdown` 字段（wecom/telegram 兼容）
+- `router.py` sender callback 增加 platform fallback
+- `runner.py` 注册 sender callback 到 router
+- `pyproject.toml` 补充 `websockets` 依赖
+- `verify_install.py` 补充 bots 模块与依赖检查
 
 ## [0.86] - 2026-05-18
 

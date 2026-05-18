@@ -8,6 +8,7 @@
 - 基本功能冒烟测试(不消耗 API token)
 - 目录权限检查
 - 网络连通性测试
+- IM 机器人模块检查
 
 运行方式:
     python scripts/verify_install.py
@@ -45,6 +46,8 @@ def check_dependencies() -> tuple[bool, str]:
         "aiohttp": "aiohttp",
         "tiktoken": "tiktoken",
         "prompt_toolkit": "prompt_toolkit",
+        "httpx": "httpx",
+        "websockets": "websockets",
     }
     missing: list[str] = []
     for module, name in required.items():
@@ -54,7 +57,7 @@ def check_dependencies() -> tuple[bool, str]:
             missing.append(name)
 
     if missing:
-        return False, f"❌ 缺少依赖: {', '.join(missing)} (运行: pip install -e .[dev])"
+        return False, f"❌ 缺少依赖: {', '.join(missing)} (运行: pip install -e .)"
     return True, "✅ 所有核心依赖已安装"
 
 
@@ -91,7 +94,6 @@ def check_directory_permissions() -> tuple[bool, str]:
 
 def check_network_connectivity() -> tuple[bool, str]:
     """网络连通性测试"""
-    import asyncio
     import socket
 
     try:
@@ -115,6 +117,24 @@ def check_module_import() -> tuple[bool, str]:
         return True, "✅ 所有核心模块导入正常"
     except Exception as e:
         return False, f"❌ 模块导入失败: {e}"
+
+
+def check_bots_module() -> tuple[bool, str]:
+    """验证 IM 机器人模块可导入"""
+    try:
+        from kimix.bots import BotAdapter, BotConfig, BotRunner
+        from kimix.bots.models import ChatMessage, ReplyMessage, Platform, MsgType
+        from kimix.bots.router import MessageRouter
+        # 构造测试
+        r = ReplyMessage.from_text("test")
+        assert r.text == "test"
+        m = ChatMessage.from_text(Platform.FEISHU, text="hi", sender_id="u1", chat_id="c1", is_group=False, bot_mentioned=False)
+        assert m.should_reply() is True
+        router = MessageRouter()
+        assert router is not None
+        return True, "✅ IM 机器人模块导入正常"
+    except Exception as e:
+        return False, f"❌ IM 机器人模块导入失败: {e}"
 
 
 def check_cli_entrypoint() -> tuple[bool, str]:
@@ -168,7 +188,16 @@ def run_smoke_test_no_api() -> tuple[bool, str]:
         event = ChatEvent(type="content", data="test", role="assistant")
         assert event.type == "content"
 
-        return True, "✅ 本地冒烟测试通过 (Token计数/预判/事件模型)"
+        # 4. 机器人消息模型
+        from kimix.bots.models import ChatMessage, ReplyMessage, Platform
+        r = ReplyMessage.from_text("hello")
+        assert r.markdown == False
+        m = ChatMessage.from_text(Platform.SLACK, text="hi", sender_id="u1", chat_id="c1", is_group=True, bot_mentioned=False)
+        assert m.should_reply() is False
+        m2 = ChatMessage.from_text(Platform.SLACK, text="hi", sender_id="u1", chat_id="c1", is_group=True, bot_mentioned=True)
+        assert m2.should_reply() is True
+
+        return True, "✅ 本地冒烟测试通过 (Token计数/预判/事件模型/机器人消息)"
     except Exception as e:
         return False, f"❌ 本地冒烟测试失败: {e}"
 
@@ -188,13 +217,20 @@ def main() -> int:
     """主验证流程"""
     print_platform_info()
 
+    # 自动将脚本所在目录的父目录加入 PYTHONPATH，支持未 pip install 时运行
+    script_dir = Path(__file__).resolve().parent
+    project_root = script_dir.parent
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+
     checks = [
         ("Python 版本", check_python_version),
         ("依赖安装", check_dependencies),
         ("API Key 配置", check_api_key),
         ("目录权限", check_directory_permissions),
         ("网络连通性", check_network_connectivity),
-        ("模块导入", check_module_import),
+        ("核心模块导入", check_module_import),
+        ("IM 机器人模块", check_bots_module),
         ("CLI 入口", check_cli_entrypoint),
         ("本地冒烟测试", run_smoke_test_no_api),
     ]
