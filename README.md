@@ -189,6 +189,80 @@ kimix
 
 ---
 
+## 🤖 IM 机器人绑定教程
+
+Kimi-Agent 可以绑定到多个 IM 平台，变成你的智能助手。绑定后，你可以在这些平台直接和 Kimi-Agent 对话，它会读取消息、执行操作、回复结果。
+
+### 支持的
+| 平台 | 命令 | 模式 |
+|:---|:---|:---|
+| **飞书** | `kimix bots setup feishu` | Stream（双向）/ Webhook（仅发送） |
+| **企业微信** | `kimix bots setup wecom` | API（双向）/ Webhook（仅发送） |
+| **Slack** | `kimix bots setup slack` | Socket（双向）/ Webhook（仅发送） |
+| **Discord** | `kimix bots setup discord` | Bot Token（双向） |
+| **Telegram** | `kimix bots setup telegram` | Polling（双向） |
+| **钉钉** | `kimix bots setup dingtalk` | Stream（双向） |
+
+> ⚠️ 个人微信（WeChat）**暂不支持**直接绑定。请使用企业微信或飞书作为替代。
+
+### 绑定飞书（推荐）
+
+**最简单的方式 — Stream 模式（双向收发，无需公网服务器）：**
+
+```cmd
+kimix bots setup feishu
+```
+
+然后按提示操作：
+1. 选择模式 `2`（Stream）
+2. 输入机器人名称（默认 Kimi-Agent）
+3. 打开 https://open.feishu.cn/app 创建企业自建应用
+4. 粘贴 App ID 和 App Secret
+5. 给应用开通权限：`im:chat:readonly` 和 `im:message:send`
+6. 事件订阅选择「长连接接收事件」
+
+绑定完成后启动：
+```cmd
+kimix bots run
+```
+
+飞书群里 @你的机器人，它就能收到消息并回复。
+
+**测试发送（不需要启动机器人）：**
+```cmd
+kimix bots send "你好，我是 Kimi-Agent"
+```
+
+### 绑定企业微信
+
+```cmd
+kimix bots setup wecom
+```
+
+1. 选择模式：
+   - `1` Webhook — 只发消息到群（最简单，适合通知场景）
+   - `2` API — 双向收发，需要 corpid + secret + agentid
+2. 按提示粘贴对应参数
+3. 完成
+
+### 查看已绑定的平台
+
+```cmd
+kimix bots list
+```
+
+### 向所有平台发送测试消息
+
+```cmd
+kimix bots send "测试消息"
+```
+
+### 配置保存位置
+
+所有绑定配置保存在 `~/.kimix/bots/{平台名}.yaml`，可以手动编辑。
+
+---
+
 ## 📂 项目结构
 
 ```
